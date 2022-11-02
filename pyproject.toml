@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "torch-efd"
+version = "1.0.0"
+description = "Elliptic Fourier Descriptors in PyTorch"
+authors = ["Felix Peppert <felix.peppert@pm.me>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torch = "^1.13"
+scikit-image = "^0.19"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7"
+Shapely = "^1.8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
