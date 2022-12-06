@@ -51,8 +51,7 @@ def derive_tangential_efds(efds: Tensor) -> Tensor:
         [1.0, -1.0, 1.0, -1.0],
         dtype=efds.dtype,
         device=efds.device,
-    )
-    factor *= 2 * torch.pi
+    ).mul_(2 * torch.pi)
     return efds[..., [1, 0, 3, 2]] * orders[:, None] * factor
 
 
