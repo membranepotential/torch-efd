@@ -16,6 +16,7 @@ from .reconstruct import (
 from .transforms import (
     scale_efds,
     rotate_efds,
+    smooth_efds,
 )
 
 from .utils import draw_mask, draw_perimeter
