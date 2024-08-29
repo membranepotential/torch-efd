@@ -9,7 +9,7 @@ from torch import Tensor
 
 def _get_contour_edges(contour: Tensor) -> tuple[Tensor, Tensor]:
     dxy = contour.diff(dim=-2)
-    lengths = dxy.pow(2).sum(-1).sqrt()
+    lengths = torch.linalg.norm(dxy, dim=-1)
     return dxy, lengths
 
 
@@ -35,13 +35,13 @@ def _close_contour(contour: Tensor, tolerance: float = 1e-6) -> Tensor:
     """
     Close an open contour by appending the first point to the end.
     """
-    endpt_dist = torch.norm(contour[..., 0, :] - contour[..., -1, :], dim=-1)
+    endpt_dist = torch.linalg.norm(contour[..., 0, :] - contour[..., -1, :], dim=-1)
     if torch.any(endpt_dist > tolerance):
         contour = torch.cat([contour, contour[..., [0], :]], dim=-2)
     return contour
 
 
-def compute_elliptic_fourier_descriptors(
+def compute_efds(
     contour: Tensor,
     order: int,
     normalize: bool = False,
@@ -50,21 +50,25 @@ def compute_elliptic_fourier_descriptors(
     Compute elliptical fourier descriptors for a contour.
 
     :param contour: 2D contour of shape (N, 2) or batch of contours of shape (B, N, 2).
-    :param order: The order of the fourier analysis resp. number of coefficients to compute.
+    :param order: Number of fourier coefficients to compute.
     :param normalize: If True, return phase, rotation and scale invariant efds.
     :return: Elliptical fourier descriptors as shape ([B], N, order, 4)
     """
     contour = _close_contour(contour)
     edges, edge_lengths = _get_contour_edges(contour)
-    t = _accumulate_contour_edge_lengths(edge_lengths)
+    ts = _accumulate_contour_edge_lengths(edge_lengths)
 
-    orders = torch.arange(1, order + 1, device=contour.device)
+    orders = torch.arange(
+        1,
+        order + 1,
+        device=contour.device,
+        dtype=contour.dtype,
+    ).mul_(2 * torch.pi)
 
     contour_length = edge_lengths.sum(-1, keepdim=True)
-    consts = contour_length / (2 * (orders * torch.pi).pow(2))
+    consts = 2 * contour_length / orders.pow(2)
 
-    phi = 2 * torch.pi * t
-    phi = phi.unsqueeze(-2) * orders.unsqueeze(-1)
+    phi = ts.unsqueeze(-2).mul(orders.unsqueeze(-1))
     dphi = torch.stack(
         (
             phi.cos().diff(dim=-1),
@@ -83,7 +87,7 @@ def compute_elliptic_fourier_descriptors(
     efds = efds.flatten(-2)
 
     if normalize:
-        efds = normalize_efd(efds)
+        efds = normalize_efds(efds)
 
     return efds
 
@@ -142,7 +146,7 @@ def normalize_scale(efds: Tensor) -> Tensor:
     return efds / torch.abs(efds[..., :1, :1])
 
 
-def normalize_efd(efds: Tensor) -> Tensor:
+def normalize_efds(efds: Tensor) -> Tensor:
     """Normalize phase, rotation and scale of EFDs."""
     efds = normalize_phase(efds)
     efds = normalize_rotation(efds)

@@ -1,9 +1,11 @@
+# pyright: basic
+
 import torch
 from torch.testing import assert_close
 
 from torch_efd.compute import _close_contour
 from torch_efd import (
-    compute_elliptic_fourier_descriptors,
+    compute_efds,
     normalize_phase,
     normalize_rotation,
     normalize_scale,
@@ -29,33 +31,33 @@ def test_close_contour(ellipse):
 
 
 def test_compute_efds(ellipse):
-    efds = compute_elliptic_fourier_descriptors(ellipse, order=10)
+    efds = compute_efds(ellipse, order=10)
     assert efds.shape == (10, 4)
 
-    efds = compute_elliptic_fourier_descriptors(ellipse.unsqueeze(0), order=10)
+    efds = compute_efds(ellipse.unsqueeze(0), order=10)
     assert efds.shape == (1, 10, 4)
 
 
 def test_normalize_phase(rolled_ellipses):
-    efds = compute_elliptic_fourier_descriptors(rolled_ellipses, order=10)
+    efds = compute_efds(rolled_ellipses, order=10)
     efds = normalize_phase(efds)
     assert_close_batch(efds)
 
 
 def test_normalize_rotation(rotated_ellipses):
-    efds = compute_elliptic_fourier_descriptors(rotated_ellipses, order=10)
+    efds = compute_efds(rotated_ellipses, order=10)
     efds = normalize_rotation(efds)
     assert_close_batch(efds)
 
 
 def test_normalize_scale(scaled_ellipses):
-    efds = compute_elliptic_fourier_descriptors(scaled_ellipses, order=10)
+    efds = compute_efds(scaled_ellipses, order=10)
     efds = normalize_scale(efds)
     assert_close_batch(efds)
 
 
 def test_normalize(random_transformed_ellipses):
-    efds = compute_elliptic_fourier_descriptors(
+    efds = compute_efds(
         random_transformed_ellipses,
         order=10,
         normalize=True,

@@ -4,15 +4,30 @@ version = "1.0.0"
 description = "Elliptic Fourier Descriptors in PyTorch"
 authors = ["Felix Peppert <felix.peppert@pm.me>"]
 license = "MIT"
+readme = "Readme.md"
+packages = [{ include = "torch_efd" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-torch = "^1.13"
-scikit-image = "^0.19"
+torch = "^2.0"
+matplotlib = { version = "^3.0.0", optional = true }
+scipy = { version = "^1.0.0", optional = true }
+scikit-image = { version = "^0.24", optional = true }
+
+[tool.poetry.extras]
+render = ["scipy", "scikit-image"]
+plot = ["matplotlib"]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7"
-Shapely = "^1.8"
+pytest = "^8"
+shapely = "^2.0"
+ipykernel = "^6.29.5"
+
+[tool.basedpyright]
+reportUnknownVariableType = false
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnusedCallResult = false
 
 [build-system]
 requires = ["poetry-core"]
